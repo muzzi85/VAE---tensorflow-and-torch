@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
 from torchvision import transforms
-from torchvision.utils import save_image
+from torchvision.utils import save_imageVAE_hypersapce
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

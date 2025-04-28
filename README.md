@@ -7,3 +7,5 @@ Python >= 3.5
 PyTorch >= 1.3
 Pytorch Lightning >= 0.6.0 (GitHub Repo)
 CUDA enabled computing device
+
+![image](https://github.com/user-attachments/assets/58ec74cc-2dc1-4093-8581-5722cb479872)

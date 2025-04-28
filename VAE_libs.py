@@ -1,84 +1,8 @@
-
 import tensorflow
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px
-
-def get_locations(spatial_sampling=2.45):
-    # ventouse is air valve
-    # vidange is washout
-    locations = {
-        'Chamber1': int((154 + 120) / spatial_sampling),  # (position + offset)/spatial_sampling
-        'Ventouse1': int((154 + 120 + 202) / spatial_sampling),
-        'Vidange1': int((154 + 120 + 202 + 115) / spatial_sampling),
-
-        'Chamber2': int((950 + 120) / spatial_sampling),
-
-        'Chamber3': int((1054 + 120) / spatial_sampling),
-
-        'Chamber4': int((1837 + 120) / spatial_sampling),
-        'Vidange4': int((1837 + 120 + 309) / spatial_sampling),
-
-        'Chamber5': int((2448 + 120) / spatial_sampling),
-
-        'Chamber6': int((2521 + 120) / spatial_sampling),
-        'Vidange6': int((2521 + 120 + 255) / spatial_sampling),
-
-        'Chamber6a': int((2773 + 120) / spatial_sampling),
-        'Ventouse6a': int((2521 + 120 + 255 + 270) / spatial_sampling),
-        'Vidange6a': int((2521 + 120 + 255 + 270 + 184) / spatial_sampling),
-
-        'Chamber7': int((3560 + 120) / spatial_sampling),
-        'Ventouse7': int((3560 + 120 + 269) / spatial_sampling),
-        'Vidange7': int((3560 + 120 + 269 + 60) / spatial_sampling),
-
-        'Chamber8': int((4188 + 120) / spatial_sampling),
-
-        # values for C9-C10 link were adjusted after Igors trip to Morocco in 10/09 - 14/09
-        'Chamber9': int((4223 + 120) / spatial_sampling),  # chamber 9 was correct
-
-        # location of detected leak on 11/09/2024; real distance measured by Mark, Georgia and Igor from Airvalve
-        'Detected_leak_11_09_2024': int((4223 + 120 + 248 - (4 * spatial_sampling) - 8) / spatial_sampling),
-        # previous value: 4223+120+248
-
-        'Ventouse9': int((4223 + 120 + 248 - (4 * spatial_sampling)) / spatial_sampling),
-        # previous value: 4223+120+248
-        'Vidange9': int((4223 + 120 + 248 + 250) / spatial_sampling),
-        'dig1_13_09_2024': int((4861 + 120 - (4 * spatial_sampling) - 50) / spatial_sampling),
-        'dig2_13_09_2024': int((4861 + 120 - (4 * spatial_sampling) - 40) / spatial_sampling),
-
-        # aux tapping location before chamber 10; real distance measured by Mark, Georgia and Igor
-        '80m_to_Chamber10': int((1993)),
-        '70m_to_Chamber10': int((1999)),
-        '65m_to_Chamber10': int((2001)),
-        '60m_to_Chamber10': int((2003)),
-        '50m_to_Chamber10': int((2007)),
-        '40m_to_Chamber10': int((2011)),
-        '30m_to_Chamber10': int((2014)),
-        '10m_to_Chamber10': int((2025)),
-
-        'Chamber10': int((4861 + 120 - (4 * spatial_sampling)) / spatial_sampling),  # previous value: 4861+120
-
-        'Chamber11': int((5332 + 120) / spatial_sampling),
-
-        'Chamber12': int((5799 + 120) / spatial_sampling),
-        'Vidange12': int((5799 + 120 + 392) / spatial_sampling),
-
-        'Chamber13': int((6453 + 120) / spatial_sampling),
-        'Vidange13': int((6453 + 120 + 52) / spatial_sampling),
-
-        'Chamber14': int((7364 + 120) / spatial_sampling),
-
-        'Chamber15': int((7963 + 120) / spatial_sampling),
-        'Vidange15': int((7963 + 120 + 173) / spatial_sampling),
-        'Ventouse15': int((7963 + 120 + 173 + 926) / spatial_sampling),
-
-        'Chamber16': int((9100 + 120) / spatial_sampling),
-    }
-
-    return locations
-
 
 def NormalizeData(data):
     return (data - np.min(data)) / (np.max(data) - np.min(data))
@@ -88,7 +12,6 @@ def sampling(mu_log_variance):
     epsilon = tensorflow.keras.backend.random_normal(shape=tensorflow.keras.backend.shape(mu), mean=0.0, stddev=1.0)
     random_sample = mu + tensorflow.keras.backend.exp(log_variance/2) * epsilon
     return random_sample
-
 
 def loss_func(encoder_mu, encoder_log_variance):
     def vae_reconstruction_loss(y_true, y_predict):
@@ -243,68 +166,6 @@ def plot_3d(encoded_data, leak_index):
     fig4.show("browser")
 
 
-
-def AI_prediction_VAE (encoder,knn, fft_DAS_signals_F, channale_interval = 1, time_interval = 5, tau = 50, freq_range = [0, 500]):
-
-    AI_files_data = np.zeros((int((fft_DAS_signals_F.shape[0] / (time_interval))) + 5, fft_DAS_signals_F.shape[1], 1, 500,1))
-
-    channel_time = 5
-
-    for channel_idx in range(0, fft_DAS_signals_F.shape[1] - 5, channale_interval):
-        count = 0
-        for time_idx in range(50, fft_DAS_signals_F.shape[0], time_interval):
-            sample_time = np.abs(fft_DAS_signals_F[time_idx - tau:time_idx + tau, channel_idx:channel_idx + channel_time, freq_range[0]:freq_range[1]]).sum(0).sum(0)
-            curved_data_time = NormalizeData(sample_time)
-            curved_data_time = smoothTriangle_one_spec(curved_data_time, 15)
-            curved_data_time = NormalizeData(curved_data_time)
-
-            curved_data_time = np.expand_dims(curved_data_time, axis=0)
-            curved_data_time = np.expand_dims(curved_data_time, axis=-1)
-
-            #preds_1_B = model.predict([background1, curved_data_time])
-            #preds_1_A = model.predict([background2, curved_data_time])
-            #preds_1_C = model.predict([background3, curved_data_time])
-
-            AI_files_data[count, channel_idx, :, :, :] = curved_data_time
-
-            #AI_files_predict[count, channel_idx, 0] = preds_1_B
-            #AI_files_predict[count, channel_idx, 1] = preds_1_A
-            #AI_files_predict[count, channel_idx, 2] = preds_1_C
-            count += 1
-            if channel_idx % 100 == 0:
-                print("channel_idx", channel_idx)
-
-    AI_files_data = AI_files_data[0:count, :, :, :, :]
-    #preds_1_B = model.predict([background1, AI_files_data[0, 123]])
-    print(AI_files_data.shape)
-    AI_prediction_final = np.zeros((len(AI_files_data),AI_files_data.shape[1]))
-
-    for i in range(len(AI_files_data)):
-        # print(i)
-        # print(AI_files_data[i])
-        # will be each of 7 of axis=0
-        # postprocessed_batch = np.abs(time_slice[:, :, :, :])
-        postprocessed_batch = np.squeeze(AI_files_data[i], axis=1)
-        postprocessed_batch = np.expand_dims(postprocessed_batch, axis=1)
-        print(postprocessed_batch.shape)
-
-        #backgrounds_batch0 = np.tile(background1, (postprocessed_batch.shape[0], 1, 1))
-        AI_probabilities0 = encoder.predict([ postprocessed_batch])
-        knn_pred = knn.predict(np.nan_to_num(AI_probabilities0))
-        AI_prediction_final[i, :] = knn_pred
-        # break
-    #plt.plot(AI_files_data[0, 1866,0])
-    #plt.plot(AI_probabilities0 > 0.8)
-    #plt.plot(AI_prediction_final[2, :])
-
-    #print(AI_probabilities0)
-
-    return AI_files_data, AI_prediction_final
-
-def NormalizeData(data):
-    return (data - np.min(data)) / (np.max(data) - np.min(data))
-
-
 def smoothTriangle_one_spec(data, degree):
     triangle=np.concatenate((np.arange(degree + 1), np.arange(degree)[::-1])) # up then down
     smoothed=[]
@@ -338,3 +199,68 @@ def smoothTriangle(data, degree):
         if sample % 1000 == 0:
             print("sample", sample)
     return data_smoothed
+
+## You need to load own data
+training_dataa, training_label, validation_dataa, validation_label, testing_dataa, testing_label = load_data()
+
+### Runing a text of VAE
+
+hyper_space_results = np.zeros((100, 14))
+
+for hyper_test in range(0, 100,1 ):
+
+    CNN_filters = space_CNN_filters[random.randint(0,2) ]
+    kernel_size_shape = space_kernel_size_shape[random.randint(0,3)]
+    latent_space_dim = space_latent_space_dim[random.randint(0,0)]
+    strides_size = space_strides_size[random.randint(0,2)]
+    Initial_CNN_filters = space_Initial_CNN_filters[random.randint(0, 2)]
+    batch_size = space_batch_size[random.randint(0,2)]
+
+    encoder, encoder_mu, encoder_log_variance, decoder, vae = VAE_hypersapce(img_size, num_channels, latent_space_dim,
+                                                                             Initial_CNN_filters, CNN_filters,
+                                                                             kernel_size_shape, strides_size)
+    vae.compile(optimizer=tensorflow.keras.optimizers.Adam(learning_rate=0.00001),
+                loss=loss_func(encoder_mu, encoder_log_variance))
+
+    history = vae.fit(np.concatenate([training_dataa, validation_dataa], axis=0),
+                      np.concatenate([training_dataa, validation_dataa], axis=0), epochs=50, batch_size=128,
+                      shuffle=True, validation_data=(testing_dataa, testing_dataa))
+
+    encoded_data_train = encoder.predict(training_dataa)
+    encoded_data_val = encoder.predict(validation_dataa)
+    encoded_data_test = encoder.predict(testing_dataa)
+
+    #mean_leak_train = encoded_data_train[4000:].sum(0)/4000
+    #mean_back_train = encoded_data_train[0:4000].sum(0)/2000
+
+    #mean_leak_val = encoded_data_val[0:240].sum(0)/240
+    #mean_back_val = encoded_data_val[240:].sum(0)/705
+
+    #mean_leak_test = encoded_data_test[0:3].sum(0)/3
+    #mean_back_test = encoded_data_test[3:].sum(0)/4
+
+    #dst_leak_leak = distance.euclidean(mean_leak_val, mean_leak_test)
+    #dst_back_back = distance.euclidean(mean_back_val, mean_back_test)
+
+    #dst_leak_back= distance.euclidean(mean_leak_val, mean_back_test)
+    #dst_back_leak = distance.euclidean(mean_back_val, mean_leak_test)
+
+    test_loss = vae.evaluate(testing_dataa, testing_dataa)
+    print("test_loss", test_loss)
+
+    hyper_space_results[hyper_test, 0] = history.history["loss"][-1]
+    hyper_space_results[hyper_test, 1] = history.history["val_loss"][-1]
+    #hyper_space_results[hyper_test, 2] = dst_leak_leak
+    #hyper_space_results[hyper_test, 3] = dst_back_back
+    #hyper_space_results[hyper_test, 4] = dst_leak_back
+    #hyper_space_results[hyper_test, 5] = dst_back_leak
+    hyper_space_results[hyper_test, 6] = CNN_filters
+    hyper_space_results[hyper_test, 7] = kernel_size_shape[0]
+    hyper_space_results[hyper_test, 8] = kernel_size_shape[1]
+    hyper_space_results[hyper_test, 9] = latent_space_dim
+    hyper_space_results[hyper_test, 10] = strides_size
+    hyper_space_results[hyper_test, 11] = Initial_CNN_filters
+    hyper_space_results[hyper_test, 12] = batch_size
+    hyper_space_results[hyper_test, 13] = test_loss
+
+

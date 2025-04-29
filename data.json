@@ -1,0 +1,53 @@
+{
+    "intermediate_dim": [
+        {
+            "value1": "250",
+            "value2": "200",
+            "value3": "150"
+        }
+    ],
+    "latent_dim": [
+        {
+            "value1": "100",
+            "value2": "10",
+            "value3": "2"
+        }
+    ],
+    "epsilon_std": [
+        {
+            "value1": "2",
+            "value2": "1",
+            "value3": "0"
+        }
+    ],
+    "regularisation_used": [
+        {
+            "value1": "2",
+            "value2": "1"
+        }
+    ],
+    "drop_out": [
+        {
+            "value1": "0.3",
+            "value2": "0"
+        }
+    ],
+    "training_type": [
+        {
+            "value1": "1",
+            "value2": "0"
+        }
+    ],
+    "epochs": [
+        {
+            "value1": "200",
+            "value2": "100"
+        }
+    ],
+    "num_folds": [
+        {
+            "value1": "20",
+            "value2": "10"
+        }
+    ]
+}

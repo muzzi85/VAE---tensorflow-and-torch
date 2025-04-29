@@ -1,0 +1,1 @@
+loss,val_loss,intermediate_dim,latent_dim,epsilon_std,regularisation_used,drop_out,training_type,epochs,num_folds
